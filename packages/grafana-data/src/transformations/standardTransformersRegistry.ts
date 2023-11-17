@@ -43,6 +43,7 @@ export enum TransformerCategory {
   PerformSpatialOperations = 'performSpatialOperations',
   Reformat = 'reformat',
   ReorderAndRename = 'reorderAndRename',
+  Script = 'script',
 }
 
 /**

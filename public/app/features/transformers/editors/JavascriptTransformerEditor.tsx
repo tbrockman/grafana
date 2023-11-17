@@ -81,6 +81,6 @@ export const javascriptTransformerRegistryItem: TransformerRegistryItem<Javascri
   transformation: standardTransformers.javascriptTransformer,
   name: standardTransformers.javascriptTransformer.name,
   description: 'Use Javascript to manipulate fields.',
-  categories: new Set([TransformerCategory.Scripting]),
+  categories: new Set([TransformerCategory.Script]),
   help: getTransformationContent(DataTransformerID.javascript).helperDocs,
 };
