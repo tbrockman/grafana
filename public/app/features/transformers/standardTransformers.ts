@@ -14,6 +14,7 @@ import { formatTimeTransformerRegistryItem } from './editors/FormatTimeTransform
 import { groupByTransformRegistryItem } from './editors/GroupByTransformerEditor';
 import { groupingToMatrixTransformRegistryItem } from './editors/GroupingToMatrixTransformerEditor';
 import { histogramTransformRegistryItem } from './editors/HistogramTransformerEditor';
+import { javascriptTransformerRegistryItem } from './editors/JavascriptTransformerEditor';
 import { joinByFieldTransformerRegistryItem } from './editors/JoinByFieldTransformerEditor';
 import { labelsToFieldsTransformerRegistryItem } from './editors/LabelsToFieldsTransformerEditor';
 import { limitTransformRegistryItem } from './editors/LimitTransformerEditor';
@@ -59,6 +60,7 @@ export const getStandardTransformers = (): Array<TransformerRegistryItem<any>> =
     heatmapTransformRegistryItem,
     groupingToMatrixTransformRegistryItem,
     limitTransformRegistryItem,
+    javascriptTransformerRegistryItem,
     joinByLabelsTransformRegistryItem,
     partitionByValuesTransformRegistryItem,
     ...(config.featureToggles.formatString ? [formatStringTransformerRegistryItem] : []),

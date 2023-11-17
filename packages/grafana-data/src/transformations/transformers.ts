@@ -11,6 +11,7 @@ import { formatTimeTransformer } from './transformers/formatTime';
 import { groupByTransformer } from './transformers/groupBy';
 import { groupingToMatrixTransformer } from './transformers/groupingToMatrix';
 import { histogramTransformer } from './transformers/histogram';
+import { javascriptTransformer } from './transformers/javascript';
 import { joinByFieldTransformer } from './transformers/joinByField';
 import { labelsToFieldsTransformer } from './transformers/labelsToFields';
 import { limitTransformer } from './transformers/limit';
@@ -53,4 +54,5 @@ export const standardTransformers = {
   convertFieldTypeTransformer,
   groupingToMatrixTransformer,
   limitTransformer,
+  javascriptTransformer,
 };
