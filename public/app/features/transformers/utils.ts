@@ -47,6 +47,7 @@ export const categoriesLabels: { [K in TransformerCategory]: string } = {
   performSpatialOperations: 'Perform spatial operations',
   reformat: 'Reformat',
   reorderAndRename: 'Reorder and rename',
+  script: 'Script',
 };
 
 export const numberOrVariableValidator = (value: string | number) => {

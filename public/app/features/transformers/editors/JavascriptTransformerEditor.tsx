@@ -1,4 +1,6 @@
-import React from 'react';
+import { getQuickJS, QuickJSWASMModule } from 'quickjs-emscripten';
+import React, { useCallback, useState, useEffect } from 'react';
+import { useDebounce } from 'react-use';
 
 import {
   DataTransformerID,
@@ -9,7 +11,7 @@ import {
 } from '@grafana/data';
 import { JavascriptTransformerOptions } from '@grafana/data/src/transformations/transformers/javascript';
 import { CodeEditor } from '@grafana/ui';
-import { CodeEditorProps } from '@grafana/ui/src/components/Monaco/types';
+// import { CodeEditorProps } from '@grafana/ui/src/components/Monaco/types'
 
 import { getTransformationContent } from '../docs/getTransformationContent';
 // import { useAllFieldNamesFromDataFrames } from '../utils';
@@ -19,58 +21,27 @@ export const JavascriptTransformerEditor = ({
   options,
   onChange,
 }: TransformerUIProps<JavascriptTransformerOptions>) => {
-  //   const fieldNames = useAllFieldNamesFromDataFrames(input).map((item: string) => ({ label: item, value: item }));
-
-  //   const onSelectColumn = useCallback(
-  //     (value: SelectableValue<string>) => {
-  //       onChange({
-  //         ...options,
-  //         columnField: value?.value,
-  //       });
-  //     },
-  //     [onChange, options]
-  //   );
-
-  //   const onSelectRow = useCallback(
-  //     (value: SelectableValue<string>) => {
-  //       onChange({
-  //         ...options,
-  //         rowField: value?.value,
-  //       });
-  //     },
-  //     [onChange, options]
-  //   );
-
-  //   const onSelectValue = useCallback(
-  //     (value: SelectableValue<string>) => {
-  //       onChange({
-  //         ...options,
-  //         valueField: value?.value,
-  //       });
-  //     },
-  //     [onChange, options]
-  //   );
-
-  //   const specialValueOptions: Array<SelectableValue<SpecialValue>> = [
-  //     { label: 'Null', value: SpecialValue.Null, description: 'Null value' },
-  //     { label: 'True', value: SpecialValue.True, description: 'Boolean true value' },
-  //     { label: 'False', value: SpecialValue.False, description: 'Boolean false value' },
-  //     { label: 'Empty', value: SpecialValue.Empty, description: 'Empty string' },
-  //   ];
-
-  //   const onSelectEmptyValue = useCallback(
-  //     (value: SelectableValue<SpecialValue>) => {
-  //       onChange({
-  //         ...options,
-  //         emptyValue: value?.value,
-  //       });
-  //     },
-  //     [onChange, options]
-  //   );
+  // TODO: debounce
+  const onCodeChange = useCallback((value: string | undefined) => {
+    const source = value ?? '';
+    onChange({
+      ...options,
+      source,
+    });
+  }, []);
 
   return (
     <>
-      <CodeEditor showLineNumbers={true} showMiniMap={false} />
+      {/* TODO: debugging for input DataFrames -> output DataFrames */}
+      {/* TODO: way to choose between input DataFrame and input row */}
+      <CodeEditor
+        height={200}
+        value={options.source || ''}
+        onChange={onCodeChange}
+        language="javascript"
+        showLineNumbers={true}
+        showMiniMap={false}
+      />
     </>
   );
 };
@@ -80,7 +51,7 @@ export const javascriptTransformerRegistryItem: TransformerRegistryItem<Javascri
   editor: JavascriptTransformerEditor,
   transformation: standardTransformers.javascriptTransformer,
   name: standardTransformers.javascriptTransformer.name,
-  description: 'Use Javascript to manipulate fields.',
+  description: 'Use Javascript to manipulate query results.',
   categories: new Set([TransformerCategory.Script]),
   help: getTransformationContent(DataTransformerID.javascript).helperDocs,
 };

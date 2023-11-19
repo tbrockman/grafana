@@ -37,6 +37,7 @@
   "dependencies": {
     "@braintree/sanitize-url": "6.0.2",
     "@grafana/schema": "10.3.0-pre",
+    "@locker/near-membrane-dom": "^0.13.3",
     "@types/d3-interpolate": "^3.0.0",
     "@types/string-hash": "1.1.1",
     "d3-interpolate": "3.0.1",

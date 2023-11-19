@@ -2930,6 +2930,7 @@ __metadata:
     "@braintree/sanitize-url": "npm:6.0.2"
     "@grafana/schema": "npm:10.3.0-pre"
     "@grafana/tsconfig": "npm:^1.2.0-rc1"
+    "@locker/near-membrane-dom": "npm:^0.13.3"
     "@rollup/plugin-commonjs": "npm:25.0.2"
     "@rollup/plugin-json": "npm:6.0.0"
     "@rollup/plugin-node-resolve": "npm:15.2.3"
@@ -4328,7 +4329,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@locker/near-membrane-dom@npm:0.13.3":
+"@locker/near-membrane-dom@npm:0.13.3, @locker/near-membrane-dom@npm:^0.13.3":
   version: 0.13.3
   resolution: "@locker/near-membrane-dom@npm:0.13.3"
   dependencies:
@@ -17778,6 +17779,7 @@ __metadata:
     prismjs: "npm:1.29.0"
     prop-types: "npm:15.8.1"
     pseudoizer: "npm:^0.1.0"
+    quickjs-emscripten: "npm:^0.23.0"
     rc-cascader: "npm:3.20.0"
     rc-drawer: "npm:6.5.2"
     rc-slider: "npm:10.3.1"
