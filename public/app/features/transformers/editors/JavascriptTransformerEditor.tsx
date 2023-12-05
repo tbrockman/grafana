@@ -1,5 +1,4 @@
-import { getQuickJS, QuickJSWASMModule } from 'quickjs-emscripten';
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDebounce } from 'react-use';
 
 import {
@@ -21,13 +20,24 @@ export const JavascriptTransformerEditor = ({
   options,
   onChange,
 }: TransformerUIProps<JavascriptTransformerOptions>) => {
+  const [source, setSource] = useState<string>('');
+
+  useDebounce(
+    () => {
+      console.log('debounced??');
+      onChange({
+        ...options,
+        source,
+      });
+    },
+    1250,
+    [source]
+  );
+
   // TODO: debounce
   const onCodeChange = useCallback((value: string | undefined) => {
     const source = value ?? '';
-    onChange({
-      ...options,
-      source,
-    });
+    setSource(source);
   }, []);
 
   return (
