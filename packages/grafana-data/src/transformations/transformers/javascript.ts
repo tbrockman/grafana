@@ -1,17 +1,14 @@
-import { getQuickJS, QuickJSWASMModule, shouldInterruptAfterDeadline } from 'quickjs-emscripten';
+import { getQuickJS, QuickJSWASMModule, QuickJSHandle } from 'quickjs-emscripten';
 import { from } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
-import { DataTransformerInfo } from '../../types';
 import { DataFrame } from '../../types/dataFrame';
 import { DataTransformContext, SynchronousDataTransformerInfo } from '../../types/transformations';
 
 import { DataTransformerID } from './ids';
-import { noopTransformer } from './noop';
 
 export interface JavascriptTransformerOptions {
   source: string;
-  quickJS?: QuickJSWASMModule;
   // True/False or auto
   // timeSeries?: boolean;
   // mode: CalculateFieldMode; // defaults to 'reduce'
@@ -30,36 +27,50 @@ export interface JavascriptTransformerOptions {
 }
 
 export interface JavascriptTransformerContext extends DataTransformContext {
-  quickJS?: QuickJSWASMModule;
+  quickJSVM?: any;
+  handles?: QuickJSHandle[]
 }
 
 async function executeJavascriptWithOptions(
   options: JavascriptTransformerOptions,
   ctx: JavascriptTransformerContext,
-  data
+  data: DataFrame[]
 ): Promise<DataFrame[]> {
-  console.log(options, ctx, data);
-  let quickJS = ctx.quickJS;
 
-  if (!quickJS) {
-    quickJS = await getQuickJS();
+  if (!ctx.quickJSVM) {
+    let quickJS = await getQuickJS()
+    ctx.quickJSVM = quickJS.newContext();
+    console.log('what')
+    const logHandle = ctx.quickJSVM.newFunction("log", (...args) => {
+      const nativeArgs = args.map(ctx.quickJSVM.dump);
+      console.log("JavascriptTransformation:", ...nativeArgs);
+    })
+    const consoleHandle = ctx.quickJSVM.newObject();
+    // const jsonHandle = ctx.quickJSVM.newObject();
+    // const parseHandle = ctx.quickJSVM.newFunction("parse", (...args) => {
+    //   console.log('trying to parse here??', args)
+    //   const nativeArgs = args.map(ctx.quickJSVM.dump) as any;
+    //   console.log('passing args:', nativeArgs)
+    //   const parsed = JSON.parse(nativeArgs)
+
+    //   console.log('parsed:', parsed)
+    //   return ctx.quickJSVM.newObject(parsed)
+
+    // })
+    // ctx.quickJSVM.setProp(ctx.quickJSVM.global, "JSON", jsonHandle)
+    // ctx.quickJSVM.setProp(jsonHandle, "parse", parseHandle)
+    ctx.quickJSVM.setProp(ctx.quickJSVM.global, "console", consoleHandle);
+    ctx.quickJSVM.setProp(consoleHandle, "log", logHandle);
+    logHandle.dispose();
+    consoleHandle.dispose();
+    // parseHandle.dispose();
+    // jsonHandle.dispose();
   }
+  let dataHandle = ctx.quickJSVM.newString(JSON.stringify(data))
+  // TODO: consider different serde method
+  ctx.quickJSVM.setProp(ctx.quickJSVM.global, "df", dataHandle)
+  dataHandle.dispose();
 
-  const vm = quickJS.newContext();
-  let state = 0;
-
-  const fnHandle = vm.newFunction('getDataFrames', () => {
-    console.log('getDataFrames called', data);
-    return vm.newObject(data);
-  });
-
-  vm.setProp(vm.global, 'getDataFrames', fnHandle);
-  fnHandle.dispose();
-
-  vm.unwrapResult(vm.evalCode(`getDataFrames()`)).consume((dataframes) =>
-    console.log('vm result:', vm.getObject(dataframes), 'native state:', dataframes)
-  );
-  vm.dispose();
 
   // const result = quickJS.evalCode(options.source, {
   // 	shouldInterrupt: shouldInterruptAfterDeadline(Date.now() + 1000),
@@ -74,6 +85,15 @@ export const javascriptTransformer: SynchronousDataTransformerInfo<JavascriptTra
   name: 'Transform using Javascript',
   description: 'Write Javascript code to manipulate data frames',
   operator: (options, ctx) => (source) =>
-    source.pipe(mergeMap(from(executeJavascriptWithOptions(options, ctx, source)))),
-  transformer: (options: JavascriptTransformerOptions, ctx: DataTransformContext) => (frames: DataFrame[]) => frames,
+    source.pipe(mergeMap((data: DataFrame[]) => from(executeJavascriptWithOptions(options, ctx, data)))),
+  transformer: (options: JavascriptTransformerOptions, { quickJSVM }: JavascriptTransformerContext) => (frames: DataFrame[]) => {
+
+    if (quickJSVM) {
+      let result = quickJSVM.unwrapResult(quickJSVM.evalCode(options.source)).consume((dataframes) =>
+        console.log('native state:', dataframes)
+      );
+      console.log("result baby???", result);
+    }
+    return frames;
+  },
 };

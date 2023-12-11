@@ -10,17 +10,21 @@ import {
 } from '@grafana/data';
 import { JavascriptTransformerOptions } from '@grafana/data/src/transformations/transformers/javascript';
 import { CodeEditor } from '@grafana/ui';
-// import { CodeEditorProps } from '@grafana/ui/src/components/Monaco/types'
 
 import { getTransformationContent } from '../docs/getTransformationContent';
-// import { useAllFieldNamesFromDataFrames } from '../utils';
 
 export const JavascriptTransformerEditor = ({
   input,
   options,
   onChange,
 }: TransformerUIProps<JavascriptTransformerOptions>) => {
-  const [source, setSource] = useState<string>('');
+  const defaultSource = `let dataframes = JSON.parse(df)
+  
+  console.log('oh good so it worked I guess.', dataframes)
+
+  // your code here ⤵︎
+`
+  const [source, setSource] = useState<string>(defaultSource);
 
   useDebounce(
     () => {
@@ -40,15 +44,22 @@ export const JavascriptTransformerEditor = ({
     setSource(source);
   }, []);
 
+  const onBeforeEditorMount = (monaco: any) => {
+    console.log('before mount')
+    // TODO: monaco add fields for uneditable code
+    monaco.languages.typescript.typescriptDefaults.addExtraLib('type DataFrame {}, let df: string') // TODO: read from compiled source
+  }
+
   return (
     <>
       {/* TODO: debugging for input DataFrames -> output DataFrames */}
       {/* TODO: way to choose between input DataFrame and input row */}
       <CodeEditor
         height={200}
-        value={options.source || ''}
+        value={options.source || defaultSource}
+        onBeforeEditorMount={onBeforeEditorMount}
         onChange={onCodeChange}
-        language="javascript"
+        language="typescript"
         showLineNumbers={true}
         showMiniMap={false}
       />
