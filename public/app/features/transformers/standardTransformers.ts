@@ -29,6 +29,7 @@ import { joinByLabelsTransformRegistryItem } from './joinByLabels/JoinByLabelsTr
 import { fieldLookupTransformRegistryItem } from './lookupGazetteer/FieldLookupTransformerEditor';
 import { partitionByValuesTransformRegistryItem } from './partitionByValues/PartitionByValuesEditor';
 import { prepareTimeseriesTransformerRegistryItem } from './prepareTimeSeries/PrepareTimeSeriesEditor';
+import { regressionTransformerRegistryItem } from './regression/regressionEditor';
 import { rowsToFieldsTransformRegistryItem } from './rowsToFields/RowsToFieldsTransformerEditor';
 import { spatialTransformRegistryItem } from './spatial/SpatialTransformerEditor';
 import { timeSeriesTableTransformRegistryItem } from './timeSeriesTable/TimeSeriesTableTransformEditor';
@@ -64,6 +65,7 @@ export const getStandardTransformers = (): Array<TransformerRegistryItem<any>> =
     joinByLabelsTransformRegistryItem,
     partitionByValuesTransformRegistryItem,
     ...(config.featureToggles.formatString ? [formatStringTransformerRegistryItem] : []),
+    ...(config.featureToggles.regressionTransformation ? [regressionTransformerRegistryItem] : []),
     formatTimeTransformerRegistryItem,
     timeSeriesTableTransformRegistryItem,
   ];

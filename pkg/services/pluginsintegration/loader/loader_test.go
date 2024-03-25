@@ -535,7 +535,7 @@ func TestLoader_Load_ExternalRegistration(t *testing.T) {
 					GrafanaVersion: "*",
 					Plugins:        []plugins.Dependency{},
 				},
-				ExternalServiceRegistration: &plugindef.ExternalServiceRegistration{
+				IAM: &plugindef.IAM{
 					Impersonation: &plugindef.Impersonation{
 						Groups: boolPtr(true),
 						Permissions: []plugindef.Permission{
@@ -636,7 +636,7 @@ func TestLoader_Load_ExternalRegistration(t *testing.T) {
 					GrafanaVersion: "*",
 					Plugins:        []plugins.Dependency{},
 				},
-				ExternalServiceRegistration: &plugindef.ExternalServiceRegistration{
+				IAM: &plugindef.IAM{
 					Permissions: []plugindef.Permission{
 						{
 							Action: "read",
@@ -1303,25 +1303,21 @@ func TestLoader_HideAngularDeprecation(t *testing.T) {
 		cfg                       *config.Cfg
 		expHideAngularDeprecation bool
 	}{
-		{name: `without "hide_angular_deprecation" setting`, cfg: &config.Cfg{
-			AngularSupportEnabled: true,
-			PluginSettings:        setting.PluginSettings{},
-			Features:              featuremgmt.WithFeatures(),
-		}},
-		{name: `with "hide_angular_deprecation" = true`, cfg: &config.Cfg{
-			AngularSupportEnabled: true,
-			PluginSettings: setting.PluginSettings{
-				"plugin-id": map[string]string{"hide_angular_deprecation": "true"},
-			},
-			Features: featuremgmt.WithFeatures(),
-		}},
-		{name: `with "hide_angular_deprecation" = false`, cfg: &config.Cfg{
-			AngularSupportEnabled: true,
-			PluginSettings: setting.PluginSettings{
-				"plugin-id": map[string]string{"hide_angular_deprecation": "false"},
-			},
-			Features: featuremgmt.WithFeatures(),
-		}},
+		{name: "with plugin id in HideAngularDeprecation list", cfg: &config.Cfg{
+			AngularSupportEnabled:  true,
+			HideAngularDeprecation: []string{"one-app", "two-panel", "test-datasource", "three-datasource"},
+			Features:               featuremgmt.WithFeatures(),
+		}, expHideAngularDeprecation: true},
+		{name: "without plugin id in HideAngularDeprecation list", cfg: &config.Cfg{
+			AngularSupportEnabled:  true,
+			HideAngularDeprecation: []string{"one-app", "two-panel", "three-datasource"},
+			Features:               featuremgmt.WithFeatures(),
+		}, expHideAngularDeprecation: false},
+		{name: "with empty HideAngularDeprecation", cfg: &config.Cfg{
+			AngularSupportEnabled:  true,
+			HideAngularDeprecation: nil,
+			Features:               featuremgmt.WithFeatures(),
+		}, expHideAngularDeprecation: false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			l := newLoaderWithOpts(t, tc.cfg, loaderDepOpts{
@@ -1623,7 +1619,8 @@ func newLoader(t *testing.T, cfg *config.Cfg, reg registry.Service, proc process
 	terminate, err := pipeline.ProvideTerminationStage(cfg, reg, proc)
 	require.NoError(t, err)
 
-	return ProvideService(pipeline.ProvideDiscoveryStage(cfg, finder.NewLocalFinder(false), reg),
+	return ProvideService(pipeline.ProvideDiscoveryStage(cfg,
+		finder.NewLocalFinder(false, featuremgmt.WithFeatures()), reg),
 		pipeline.ProvideBootstrapStage(cfg, signature.DefaultCalculator(cfg), assets),
 		pipeline.ProvideValidationStage(cfg, signature.NewValidator(signature.NewUnsignedAuthorizer(cfg)), angularInspector, sigErrTracker),
 		pipeline.ProvideInitializationStage(cfg, reg, lic, backendFactory, proc, &fakes.FakeAuthService{}, fakes.NewFakeRoleRegistry()),
@@ -1655,7 +1652,8 @@ func newLoaderWithOpts(t *testing.T, cfg *config.Cfg, opts loaderDepOpts) *Loade
 		backendFactoryProvider = fakes.NewFakeBackendProcessProvider()
 	}
 
-	return ProvideService(pipeline.ProvideDiscoveryStage(cfg, finder.NewLocalFinder(false), reg),
+	return ProvideService(pipeline.ProvideDiscoveryStage(cfg,
+		finder.NewLocalFinder(false, featuremgmt.WithFeatures()), reg),
 		pipeline.ProvideBootstrapStage(cfg, signature.DefaultCalculator(cfg), assets),
 		pipeline.ProvideValidationStage(cfg, signature.NewValidator(signature.NewUnsignedAuthorizer(cfg)), angularInspector, sigErrTracker),
 		pipeline.ProvideInitializationStage(cfg, reg, lic, backendFactoryProvider, proc, authServiceRegistry, fakes.NewFakeRoleRegistry()),

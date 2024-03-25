@@ -19,6 +19,7 @@ import { config } from '@grafana/runtime';
 import { extractFieldsTransformer } from 'app/features/transformers/extractFields/extractFields';
 
 import { Logs } from './Logs';
+import { visualisationTypeKey } from './utils/logs';
 import { getMockElasticFrame, getMockLokiFrame } from './utils/testMocks.test';
 
 const reportInteraction = jest.fn();
@@ -162,65 +163,24 @@ describe('Logs', () => {
       window.innerHeight = originalInnerHeight;
     });
 
-    describe('when `exploreScrollableLogsContainer` is set', () => {
-      let featureToggle: boolean | undefined;
-      beforeEach(() => {
-        featureToggle = config.featureToggles.exploreScrollableLogsContainer;
-        config.featureToggles.exploreScrollableLogsContainer = true;
-      });
-      afterEach(() => {
-        config.featureToggles.exploreScrollableLogsContainer = featureToggle;
-        jest.clearAllMocks();
-      });
+    it('should call `scrollElement.scroll`', () => {
+      const logs = [];
+      for (let i = 0; i < 50; i++) {
+        logs.push(makeLog({ uid: `uid${i}`, rowId: `id${i}`, timeEpochMs: i }));
+      }
+      const scrollElementMock = {
+        scroll: jest.fn(),
+        scrollTop: 920,
+      };
+      setup(
+        { scrollElement: scrollElementMock as unknown as HTMLDivElement, panelState: { logs: { id: 'uid47' } } },
+        undefined,
+        logs
+      );
 
-      it('should call `this.state.logsContainer.scroll`', () => {
-        const scrollIntoViewSpy = jest.spyOn(window.HTMLElement.prototype, 'scrollIntoView');
-        jest.spyOn(window.HTMLElement.prototype, 'scrollTop', 'get').mockReturnValue(920);
-        const scrollSpy = jest.spyOn(window.HTMLElement.prototype, 'scroll');
-
-        const logs = [];
-        for (let i = 0; i < 50; i++) {
-          logs.push(makeLog({ uid: `uid${i}`, rowId: `id${i}`, timeEpochMs: i }));
-        }
-
-        setup({ panelState: { logs: { id: 'uid47' } } }, undefined, logs);
-
-        expect(scrollIntoViewSpy).toBeCalledTimes(1);
-        // element.getBoundingClientRect().top will always be 0 for jsdom
-        // calc will be `this.state.logsContainer.scrollTop - window.innerHeight / 2` -> 920 - 500 = 420
-        expect(scrollSpy).toBeCalledWith({ behavior: 'smooth', top: 420 });
-      });
-    });
-
-    describe('when `exploreScrollableLogsContainer` is not set', () => {
-      let featureToggle: boolean | undefined;
-      beforeEach(() => {
-        featureToggle = config.featureToggles.exploreScrollableLogsContainer;
-        config.featureToggles.exploreScrollableLogsContainer = false;
-      });
-      afterEach(() => {
-        config.featureToggles.exploreScrollableLogsContainer = featureToggle;
-      });
-
-      it('should call `scrollElement.scroll`', () => {
-        const logs = [];
-        for (let i = 0; i < 50; i++) {
-          logs.push(makeLog({ uid: `uid${i}`, rowId: `id${i}`, timeEpochMs: i }));
-        }
-        const scrollElementMock = {
-          scroll: jest.fn(),
-          scrollTop: 920,
-        };
-        setup(
-          { scrollElement: scrollElementMock as unknown as HTMLDivElement, panelState: { logs: { id: 'uid47' } } },
-          undefined,
-          logs
-        );
-
-        // element.getBoundingClientRect().top will always be 0 for jsdom
-        // calc will be `scrollElement.scrollTop - window.innerHeight / 2` -> 920 - 500 = 420
-        expect(scrollElementMock.scroll).toBeCalledWith({ behavior: 'smooth', top: 420 });
-      });
+      // element.getBoundingClientRect().top will always be 0 for jsdom
+      // calc will be `scrollElement.scrollTop - window.innerHeight / 2` -> 920 - 500 = 420
+      expect(scrollElementMock.scroll).toBeCalledWith({ behavior: 'smooth', top: 420 });
     });
   });
 
@@ -477,6 +437,20 @@ describe('Logs', () => {
       await userEvent.click(logsSection);
 
       const table = screen.getByTestId('logRowsTable');
+      expect(table).toBeInTheDocument();
+    });
+
+    it('should use default state from localstorage - table', async () => {
+      localStorage.setItem(visualisationTypeKey, 'table');
+      setup({});
+      const table = await screen.findByTestId('logRowsTable');
+      expect(table).toBeInTheDocument();
+    });
+
+    it('should use default state from localstorage - logs', async () => {
+      localStorage.setItem(visualisationTypeKey, 'logs');
+      setup({});
+      const table = await screen.findByTestId('logRows');
       expect(table).toBeInTheDocument();
     });
 
