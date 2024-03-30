@@ -73,6 +73,7 @@ func (r *conditionEvaluator) EvaluateRaw(ctx context.Context, now time.Time) (re
 		defer cancel()
 		execCtx = timeoutCtx
 	}
+	logger.FromContext(ctx).Debug("Executing pipeline", "commands", strings.Join(r.pipeline.GetCommandTypes(), ","), "datasources", strings.Join(r.pipeline.GetDatasourceTypes(), ","))
 	return r.expressionService.ExecutePipeline(execCtx, now, r.pipeline)
 }
 
@@ -273,6 +274,23 @@ func (s State) IsValid() bool {
 
 func (s State) String() string {
 	return [...]string{"Normal", "Alerting", "Pending", "NoData", "Error"}[s]
+}
+
+func ParseStateString(repr string) (State, error) {
+	switch strings.ToLower(repr) {
+	case "normal":
+		return Normal, nil
+	case "alerting":
+		return Alerting, nil
+	case "pending":
+		return Pending, nil
+	case "nodata":
+		return NoData, nil
+	case "error":
+		return Error, nil
+	default:
+		return -1, fmt.Errorf("invalid state: %s", repr)
+	}
 }
 
 func buildDatasourceHeaders(ctx context.Context) map[string]string {

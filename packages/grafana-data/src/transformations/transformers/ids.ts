@@ -41,4 +41,5 @@ export enum DataTransformerID {
   formatString = 'formatString',
   javascript = 'javascript',
   regression = 'regression',
+  groupToNestedTable = 'groupToNestedTable',
 }
